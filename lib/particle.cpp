@@ -5,6 +5,11 @@ particle::particle(std::vector<double> positionNew)
     this->positionSetter(positionNew);
 }
 
+double particle::massGetter()
+{
+    return particle::mass;
+}
+
 void particle::massSetter(double val)
 {
     particle::mass = val;
@@ -13,7 +18,7 @@ void particle::massSetter(double val)
 void particle::positionSetter(std::vector<double> positionNew)
 {
     double intePart;
-    for (int i = 1; i < 3; ++i)
+    for (int i = 0; i < 3; ++i)
     {
         if (positionNew[i] < 0)
         {
@@ -29,4 +34,3 @@ void particle::positionSetter(std::vector<double> positionNew)
         }
     }
 }
-
