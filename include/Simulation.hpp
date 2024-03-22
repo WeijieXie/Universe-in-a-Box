@@ -18,7 +18,7 @@ public:
     int numOfCells;
     double volOfBox;
     double volOfCell;
-    double relCellWidth; // which is 1/numOfCellsPerDim
+    double relCellWidth; // which is 1.0/numOfCellsPerDim
     double densityContributionPerParticle;
 
     fftw_complex *densityBuffer = nullptr;
@@ -28,7 +28,7 @@ public:
     fftw_plan forward_plan;
     fftw_plan inverse_plan;
 
-    Simulation(double timeMax, double timeStep, particles initParticles, double width, int numOfCells, double expanFac);
+    Simulation(double timeMax, double timeStep, particles initParticles, double width, int numOfCellsPerDim, double expanFac);
     ~Simulation();
 
     void densityCalculator();

@@ -13,7 +13,7 @@ Simulation::Simulation(double timeMax, double timeStep, particles initParticles,
     this->numOfCells = pow(numOfCellsPerDim, 3);
     this->volOfBox = pow(this->width, 3);
     this->volOfCell = this->volOfBox / this->numOfCells;
-    this->relCellWidth = 1 / this->numOfCellsPerDim;
+    this->relCellWidth = 1.0 / this->numOfCellsPerDim;
     this->densityContributionPerParticle = particle::massGetter() / this->volOfCell; // need updating per iteration
 
     this->densityBuffer = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * this->numOfCells);
