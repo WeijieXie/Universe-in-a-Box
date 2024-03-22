@@ -7,8 +7,9 @@
 class particles
 {
 public:
-    std::vector<particle> particleInfo;
+    std::vector<particle> particleInfo = {};
 
+    particles() = default;
     particles(int numOfParticles, int seed);
     particles(std::vector<std::vector<double>> positions);
 };
