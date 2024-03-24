@@ -18,6 +18,7 @@ public:
     double volOfBox;
     double volOfCell;
     double relCellWidth; // which is 1.0/numOfCellsPerDim
+    double cellWidth;
     double densityContributionPerParticle;
     double wSquare;
     std::vector<double> kSquare;
@@ -29,6 +30,8 @@ public:
     fftw_complex *densityBuffer = nullptr;
     fftw_complex *potentialBuffer = nullptr;
     fftw_complex *frequencyBuffer = nullptr;
+    double *potentialRealPart = nullptr;
+    std::vector<std::vector<double>> acceleration;
 
     fftw_plan forward_plan;
     fftw_plan inverse_plan;
@@ -36,8 +39,13 @@ public:
     Simulation(double timeMax, double timeStep, particles initParticles, double width, int numOfCellsPerDim, double expanFac);
     ~Simulation();
 
+    int cellIdentifier(std::vector<double> position);
+    int wrapHelper(int i);
+    int indexCalculator(int i, int j, int k);
     void densityCalculator();
     void potentialCalculator();
+    void accelerationCalculator();
+    void particlesUpdater();
 
     /**
      * @brief Run a particle mesh simulation from t=0 to t_max

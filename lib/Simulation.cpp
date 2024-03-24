@@ -5,6 +5,7 @@ Simulation::Simulation(double timeMax, double timeStep, particles initParticles,
 {
     this->timeMax = timeMax;
     this->timeStep = timeStep;
+    particle::dtSetter(this->timeStep);
     this->particlesSimu = initParticles;
     this->width = width;
     this->numOfCellsPerDim = numOfCellsPerDim;
@@ -14,6 +15,7 @@ Simulation::Simulation(double timeMax, double timeStep, particles initParticles,
     this->volOfBox = pow(this->width, 3);
     this->volOfCell = this->volOfBox / this->numOfCells;
     this->relCellWidth = 1.0 / this->numOfCellsPerDim;
+    this->cellWidth = this->width / this->numOfCellsPerDim;
     this->densityContributionPerParticle = particle::massGetter() / this->volOfCell; // need updating per iteration
     this->wSquare = this->width * this->width;
     this->kSquare = std::vector<double>(this->numOfCells);
@@ -24,7 +26,8 @@ Simulation::Simulation(double timeMax, double timeStep, particles initParticles,
         {
             for (int k = 0; k < this->numOfCellsPerDim; k++)
             {
-                index = i * pow(this->numOfCellsPerDim, 2) + j * this->numOfCellsPerDim + k;
+                index = indexCalculator(i, j, k);
+                // index = i * pow(this->numOfCellsPerDim, 2) + j * this->numOfCellsPerDim + k;
                 this->kSquare[index] = (k * k + j * j + i * i) / this->wSquare;
             }
         }
@@ -34,6 +37,8 @@ Simulation::Simulation(double timeMax, double timeStep, particles initParticles,
     this->densityBuffer = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * this->numOfCells);
     this->potentialBuffer = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * this->numOfCells);
     this->frequencyBuffer = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * this->numOfCells);
+    this->potentialRealPart = (double *)new double[this->numOfCells];
+    this->acceleration = std::vector<std::vector<double>>(this->numOfCells, std::vector<double>(3));
 
     this->forward_plan = fftw_plan_dft_3d(this->numOfCellsPerDim, this->numOfCellsPerDim, this->numOfCellsPerDim, this->densityBuffer, this->frequencyBuffer, FFTW_FORWARD, FFTW_MEASURE);
     this->inverse_plan = fftw_plan_dft_3d(this->numOfCellsPerDim, this->numOfCellsPerDim, this->numOfCellsPerDim, this->frequencyBuffer, this->potentialBuffer, FFTW_BACKWARD, FFTW_MEASURE);
@@ -47,27 +52,64 @@ Simulation::~Simulation()
     potentialBuffer = nullptr;
     delete[] frequencyBuffer;
     frequencyBuffer = nullptr;
+    delete[] potentialRealPart;
+    potentialRealPart = nullptr;
 
     fftw_destroy_plan(this->forward_plan);
     fftw_destroy_plan(this->inverse_plan);
 }
 
+int Simulation::cellIdentifier(std::vector<double> position)
+{
+    double intePart = 0.0;
+    int index = 0;
+    for (int i = 0; i < 3; ++i)
+    {
+        std::modf(position[i] / this->relCellWidth, &intePart); // get the integer part from the division to get the index of each coordinates of the cell
+        index += intePart * pow(this->numOfCellsPerDim, 2 - i); // get the index of the cell in the 1-d array
+    }
+    return index;
+}
+
+int Simulation::wrapHelper(int i)
+{
+    if (i > this->numOfCellsPerDim)
+    {
+        return 0;
+    }
+    else if (i < 0)
+    {
+        return this->numOfCellsPerDim;
+    }
+    else
+    {
+        return i;
+    }
+}
+
+int Simulation::indexCalculator(int i, int j, int k)
+{
+    int index = i * pow(this->numOfCellsPerDim, 2) + j * this->numOfCellsPerDim + k;
+    return index;
+}
+
 void Simulation::densityCalculator()
 {
-    double normalizedPos = 0.0;
-    double intePart = 0.0;
+    // double normalizedPos = 0.0;
+    // double intePart = 0.0;
     int index = 0;
 
     memset(this->densityBuffer, 0.0, sizeof(fftw_complex) * this->numOfCells); // initialize the buffer with all entry to be 0.0
 
     for (auto iter = this->particlesSimu.particleInfo.begin(); iter < this->particlesSimu.particleInfo.end(); iter++)
     {
-        index = 0;
-        for (int i = 0; i < 3; ++i)
-        {
-            std::modf(iter->position[i] / this->relCellWidth, &intePart); // get the integer part from the division to get the index of each coordinates of the cell
-            index += intePart * pow(this->numOfCellsPerDim, 2 - i);       // get the index of the cell in the 1-d array
-        }
+        // index = 0;
+        // for (int i = 0; i < 3; ++i)
+        // {
+        //     std::modf(iter->position[i] / this->relCellWidth, &intePart); // get the integer part from the division to get the index of each coordinates of the cell
+        //     index += intePart * pow(this->numOfCellsPerDim, 2 - i);       // get the index of the cell in the 1-d array
+        // }
+        index = cellIdentifier(iter->position);
         this->densityBuffer[index][0] += this->densityContributionPerParticle; // add the density to the desity buffer representing the cell
     }
 }
@@ -86,11 +128,39 @@ void Simulation::potentialCalculator()
 
     fftw_execute(this->inverse_plan);
 
-    // for (int i = 0; i < this->numOfCells; i++)
-    // {
-    //     this->potentialBuffer[i][0] *= this->fNorm;
-    //     this->potentialBuffer[i][1] *= this->fNorm;
-    // }
+    for (int i = 1; i < this->numOfCells; i++)
+    {
+        this->potentialRealPart[i] = potentialBuffer[i][0];
+    }
+}
+
+void Simulation::accelerationCalculator()
+{
+    int index = 0;
+    for (int i = 1; i < this->numOfCellsPerDim; i++)
+    {
+        for (int j = 1; j < this->numOfCellsPerDim; j++)
+        {
+            for (int k = 1; k < this->numOfCellsPerDim; k++)
+            {
+                index = indexCalculator(i, j, k);
+
+                this->acceleration[index][0] = (this->potentialRealPart[indexCalculator(wrapHelper(i - 1), j, k)] - this->potentialRealPart[indexCalculator(wrapHelper(i + 1), j, k)]) / (2 * this->cellWidth);
+                this->acceleration[index][1] = (this->potentialRealPart[indexCalculator(i, wrapHelper(j - 1), k)] - this->potentialRealPart[indexCalculator(i, wrapHelper(j + 1), k)]) / (2 * this->cellWidth);
+                this->acceleration[index][2] = (this->potentialRealPart[indexCalculator(i, j, wrapHelper(k - 1))] - this->potentialRealPart[indexCalculator(i, j, wrapHelper(k + 1))]) / (2 * this->cellWidth);
+            }
+        }
+    }
+}
+
+void Simulation::particlesUpdater()
+{
+    int index = 0;
+    for (auto iter = this->particlesSimu.particleInfo.begin(); iter < this->particlesSimu.particleInfo.end(); iter++)
+    {
+        index = cellIdentifier(iter->position);
+        iter->updater(this->acceleration[index]);
+    }
 }
 
 void Simulation::run()
