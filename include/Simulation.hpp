@@ -46,6 +46,7 @@ public:
     void potentialCalculator();
     void accelerationCalculator();
     void particlesUpdater();
+    void boxExpander();
 
     /**
      * @brief Run a particle mesh simulation from t=0 to t_max

@@ -128,7 +128,7 @@ void Simulation::potentialCalculator()
 
     fftw_execute(this->inverse_plan);
 
-    for (int i = 1; i < this->numOfCells; i++)
+    for (int i = 0; i < this->numOfCells; i++)
     {
         this->potentialRealPart[i] = potentialBuffer[i][0];
     }
@@ -137,11 +137,11 @@ void Simulation::potentialCalculator()
 void Simulation::accelerationCalculator()
 {
     int index = 0;
-    for (int i = 1; i < this->numOfCellsPerDim; i++)
+    for (int i = 0; i < this->numOfCellsPerDim; i++)
     {
-        for (int j = 1; j < this->numOfCellsPerDim; j++)
+        for (int j = 0; j < this->numOfCellsPerDim; j++)
         {
-            for (int k = 1; k < this->numOfCellsPerDim; k++)
+            for (int k = 0; k < this->numOfCellsPerDim; k++)
             {
                 index = indexCalculator(i, j, k);
 
@@ -160,6 +160,34 @@ void Simulation::particlesUpdater()
     {
         index = cellIdentifier(iter->position);
         iter->updater(this->acceleration[index]);
+    }
+}
+
+void Simulation::boxExpander()
+{
+    this->width *= this->expanFac;
+    this->volOfBox = pow(this->width, 3);
+    this->volOfCell = this->volOfBox / this->numOfCells;
+    this->cellWidth = this->width / this->numOfCellsPerDim;
+    this->densityContributionPerParticle = particle::massGetter() / this->volOfCell;
+    this->wSquare = this->width * this->width;
+    int index = 0;
+    for (int i = 0; i < this->numOfCellsPerDim; i++)
+    {
+        for (int j = 0; j < this->numOfCellsPerDim; j++)
+        {
+            for (int k = 0; k < this->numOfCellsPerDim; k++)
+            {
+                index = indexCalculator(i, j, k);
+                // index = i * pow(this->numOfCellsPerDim, 2) + j * this->numOfCellsPerDim + k;
+                this->kSquare[index] = (k * k + j * j + i * i) / this->wSquare;
+            }
+        }
+    }
+
+    for (auto iter = this->particlesSimu.particleInfo.begin(); iter < this->particlesSimu.particleInfo.end(); iter++)
+    {
+        iter->velocityRescaler(this->expanFac);
     }
 }
 
