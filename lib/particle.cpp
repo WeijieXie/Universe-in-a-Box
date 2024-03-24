@@ -43,10 +43,18 @@ void particle::positionSetter(std::vector<double> positionNew)
 void particle::updater(std::vector<double> acceleration)
 {
 
-    for (int i = 1; i < 3; i++)
+    for (int i = 0; i < 3; i++)
     {
         this->velocity[i] += acceleration[i] * this->dt;
         this->position[i] += this->velocity[i] * this->dt;
     }
     positionSetter(this->position);
+}
+
+void particle::velocityRescaler(double expanFac)
+{
+    for (int i = 0; i < 3; i++)
+    {
+        this->velocity[i] /= expanFac;
+    }
 }

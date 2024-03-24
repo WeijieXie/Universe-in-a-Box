@@ -22,6 +22,7 @@ public:
     static void dtSetter(double dt);
     void positionSetter(std::vector<double> positionNew);
     void updater(std::vector<double> acceleration);
+    void velocityRescaler(double expanFac);
 };
 
 // double particle::mass = 1.0;
