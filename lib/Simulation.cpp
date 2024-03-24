@@ -193,4 +193,12 @@ void Simulation::boxExpander()
 
 void Simulation::run()
 {
+    for (double i = 0.0; i < this->timeMax; i+=this->timeStep)
+    {
+        densityCalculator();
+        potentialCalculator();
+        accelerationCalculator();
+        particlesUpdater();
+        boxExpander();
+    }
 }
