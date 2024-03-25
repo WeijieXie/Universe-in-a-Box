@@ -4,7 +4,7 @@ particles::particles(int numOfParticles, int seed)
 {
     srand(seed);
     // this->particleInfo.clear();
-    for (int i = 1; i < numOfParticles; ++i)
+    for (int i = 0; i < numOfParticles; ++i)
     {
         particle particleX;
         particleX.positionSetter({rand() / (RAND_MAX + 1.0), rand() / (RAND_MAX + 1.0), rand() / (RAND_MAX + 1.0)});
