@@ -37,7 +37,7 @@ Simulation::Simulation(double timeMax, double timeStep, particles initParticles,
     this->densityBuffer = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * this->numOfCells);
     this->potentialBuffer = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * this->numOfCells);
     this->frequencyBuffer = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * this->numOfCells);
-    this->potentialRealPart = (double *)new double[this->numOfCells];
+    this->potentialRealPart = std::vector<double>(this->numOfCells);
     this->acceleration = std::vector<std::vector<double>>(this->numOfCells, std::vector<double>(3));
 
     this->forward_plan = fftw_plan_dft_3d(this->numOfCellsPerDim, this->numOfCellsPerDim, this->numOfCellsPerDim, this->densityBuffer, this->frequencyBuffer, FFTW_FORWARD, FFTW_MEASURE);
@@ -46,14 +46,12 @@ Simulation::Simulation(double timeMax, double timeStep, particles initParticles,
 
 Simulation::~Simulation()
 {
-    delete[] densityBuffer;
+    fftw_free(this->densityBuffer);
     densityBuffer = nullptr;
-    delete[] potentialBuffer;
+    fftw_free(this->potentialBuffer);
     potentialBuffer = nullptr;
-    delete[] frequencyBuffer;
+    fftw_free(this->frequencyBuffer);
     frequencyBuffer = nullptr;
-    delete[] potentialRealPart;
-    potentialRealPart = nullptr;
 
     fftw_destroy_plan(this->forward_plan);
     fftw_destroy_plan(this->inverse_plan);
@@ -61,25 +59,34 @@ Simulation::~Simulation()
 
 int Simulation::cellIdentifier(std::vector<double> position)
 {
-    double intePart = 0.0;
+    // double intePart = 0.0;
+    double quotient = 0.0;
     int index = 0;
     for (int i = 0; i < 3; ++i)
     {
-        std::modf(position[i] / this->relCellWidth, &intePart); // get the integer part from the division to get the index of each coordinates of the cell
-        index += intePart * pow(this->numOfCellsPerDim, 2 - i); // get the index of the cell in the 1-d array
+        // std::modf(position[i] / this->relCellWidth, &intePart); // get the integer part from the division to get the index of each coordinates of the cell
+        quotient = std::floor(position[i] / this->relCellWidth);
+        index += quotient * pow(this->numOfCellsPerDim, 2 - i); // get the index of the cell in the 1-d array
+        // std::cout << quotient << " ";
     }
-    return index;
+    // std::cout << "quotient" << std::endl;
+    return static_cast<int>(index);
 }
 
 int Simulation::wrapHelper(int i)
 {
-    if (i > this->numOfCellsPerDim)
+    // if (i > this->numOfCellsPerDim)
+    if (i == this->numOfCellsPerDim)
+
     {
+        // std::cout << "error!!!!!!!!!!!!!!!" << std::endl;
         return 0;
     }
-    else if (i < 0)
+    else if (i == -1)
     {
-        return this->numOfCellsPerDim;
+        // std::cout << "error!!!!!!!!!!!!!!!" << std::endl;
+        // return this->numOfCellsPerDim;
+        return this->numOfCellsPerDim - 1;
     }
     else
     {
@@ -99,7 +106,13 @@ void Simulation::densityCalculator()
     // double intePart = 0.0;
     int index = 0;
 
-    memset(this->densityBuffer, 0.0, sizeof(fftw_complex) * this->numOfCells); // initialize the buffer with all entry to be 0.0
+    // memset(this->densityBuffer, 0.0, sizeof(fftw_complex) * this->numOfCells); // initialize the buffer with all entry to be 0.0
+
+    for (int i = 0; i < this->numOfCells; ++i)
+    {
+        this->densityBuffer[i][0] = 0.0; // set the real part 0.0
+        this->densityBuffer[i][1] = 0.0; // set the imagine part 0.0
+    }
 
     for (auto iter = this->particlesSimu.particleInfo.begin(); iter < this->particlesSimu.particleInfo.end(); iter++)
     {
@@ -130,7 +143,7 @@ void Simulation::potentialCalculator()
 
     for (int i = 0; i < this->numOfCells; i++)
     {
-        this->potentialRealPart[i] = potentialBuffer[i][0];
+        this->potentialRealPart[i] = this->potentialBuffer[i][0];
     }
 }
 
@@ -145,9 +158,9 @@ void Simulation::accelerationCalculator()
             {
                 index = indexCalculator(i, j, k);
 
-                this->acceleration[index][0] = (this->potentialRealPart[indexCalculator(wrapHelper(i - 1), j, k)] - this->potentialRealPart[indexCalculator(wrapHelper(i + 1), j, k)]) / (2 * this->cellWidth);
-                this->acceleration[index][1] = (this->potentialRealPart[indexCalculator(i, wrapHelper(j - 1), k)] - this->potentialRealPart[indexCalculator(i, wrapHelper(j + 1), k)]) / (2 * this->cellWidth);
-                this->acceleration[index][2] = (this->potentialRealPart[indexCalculator(i, j, wrapHelper(k - 1))] - this->potentialRealPart[indexCalculator(i, j, wrapHelper(k + 1))]) / (2 * this->cellWidth);
+                this->acceleration[index][0] = (this->potentialRealPart[indexCalculator(wrapHelper(i - 1), j, k)] - this->potentialRealPart[indexCalculator(wrapHelper(i + 1), j, k)]) / (2.0 * this->cellWidth);
+                this->acceleration[index][1] = (this->potentialRealPart[indexCalculator(i, wrapHelper(j - 1), k)] - this->potentialRealPart[indexCalculator(i, wrapHelper(j + 1), k)]) / (2.0 * this->cellWidth);
+                this->acceleration[index][2] = (this->potentialRealPart[indexCalculator(i, j, wrapHelper(k - 1))] - this->potentialRealPart[indexCalculator(i, j, wrapHelper(k + 1))]) / (2.0 * this->cellWidth);
             }
         }
     }
@@ -159,6 +172,7 @@ void Simulation::particlesUpdater()
     for (auto iter = this->particlesSimu.particleInfo.begin(); iter < this->particlesSimu.particleInfo.end(); iter++)
     {
         index = cellIdentifier(iter->position);
+        // std::cout << iter->position[0] << " " << iter->position[1] << " " << iter->position[2] << " " << index << std::endl;
         iter->updater(this->acceleration[index]);
     }
 }
@@ -193,12 +207,17 @@ void Simulation::boxExpander()
 
 void Simulation::run()
 {
-    for (double i = 0.0; i < this->timeMax; i+=this->timeStep)
+    for (double i = 0.0; i < this->timeMax; i += this->timeStep)
     {
         densityCalculator();
+        // std::cout << ".........densityCalculator........." << i << ".........densityCalculator........." << std::endl;
         potentialCalculator();
+        // std::cout << ".........potentialCalculator........." << i << ".........potentialCalculator........." << std::endl;
         accelerationCalculator();
+        // std::cout << ".........accelerationCalculator........." << i << ".........accelerationCalculator........." << std::endl;
         particlesUpdater();
+        // std::cout << ".........particlesUpdater........." << i << ".........particlesUpdater........." << std::endl;
         boxExpander();
+        // std::cout << "..........................." << i << "..........................." << std::endl;
     }
 }
