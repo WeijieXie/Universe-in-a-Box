@@ -1,7 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_all.hpp>
 #include <cmath>
-#include <iostream>
 #include "data.hpp"
 
 using namespace Catch::Matchers;
@@ -175,4 +174,16 @@ TEST_CASE("Test potential function for single particle", "Potential Tests")
             REQUIRE_THAT(pot, WithinRel(expected_pot, 0.3));
         }
     }
+}
+
+TEST_CASE("Test ZERO", "Simulation Loop Tests")
+{
+    // One particle in the centre of the box with mass 0.01
+    particle::massSetter(test_data::mass);
+
+    // Declare simulation with particle setup, width, and number of cells.
+    // TODO: Simulation sim(...);
+    Simulation simulation(test_data::timeMax, test_data::timeStep, test_data::initParticlesMultiple, test_data::width, 3, test_data::expanFac);
+
+    simulation.run();
 }
