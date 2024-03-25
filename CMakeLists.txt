@@ -7,7 +7,20 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_CXX_FLAGS "-O3")
+# option: whether debug
+# option(USE_FEATURE_DEBUG "Enable feature" OFF)
+
+# if(USE_FEATURE_DEBUG)
+  # debug
+  # set(CMAKE_CXX_FLAGS "-O0 -g")
+  # message(STATUS "DEBUG mode...")
+# else()
+  # not debug
+  # set(CMAKE_CXX_FLAGS "-O3")
+  # message(STATUS "NOT DEBUG mode...")
+# endif()
+
+set(CMAKE_CXX_FLAGS "-O0 -g")
 
 find_package(OpenMP REQUIRED)
 find_package(Catch2 3 REQUIRED)
