@@ -5,6 +5,8 @@
 #include <fftw3.h>
 #include <cstring>
 
+#include <iostream>
+
 class Simulation
 {
 public:
@@ -30,7 +32,7 @@ public:
     fftw_complex *densityBuffer = nullptr;
     fftw_complex *potentialBuffer = nullptr;
     fftw_complex *frequencyBuffer = nullptr;
-    double *potentialRealPart = nullptr;
+    std::vector<double> potentialRealPart;
     std::vector<std::vector<double>> acceleration;
 
     fftw_plan forward_plan;
