@@ -1,11 +1,15 @@
 #pragma once
 
 #include "particles.hpp"
+#include "Utils.hpp"
 
 #include <fftw3.h>
 #include <cstring>
-
+#include <optional>
 #include <iostream>
+
+#include <filesystem>
+#include <sstream>
 
 class Simulation
 {
@@ -54,5 +58,5 @@ public:
      * @brief Run a particle mesh simulation from t=0 to t_max
      *
      */
-    void run();
+    void run(std::optional<std::string> folderPath = std::nullopt);
 };

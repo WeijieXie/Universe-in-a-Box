@@ -205,19 +205,33 @@ void Simulation::boxExpander()
     }
 }
 
-void Simulation::run()
+void Simulation::run(std::optional<std::string> folderPath)
 {
+    int iteration = -1;
+    bool flag = false;
+    if (folderPath.has_value())
+    {
+        flag = true;
+        if (!std::filesystem::exists(*folderPath))
+        {
+            std::filesystem::create_directories(*folderPath);
+        }
+    }
+
     for (double i = 0.0; i < this->timeMax; i += this->timeStep)
     {
         densityCalculator();
-        // std::cout << ".........densityCalculator........." << i << ".........densityCalculator........." << std::endl;
         potentialCalculator();
-        // std::cout << ".........potentialCalculator........." << i << ".........potentialCalculator........." << std::endl;
         accelerationCalculator();
-        // std::cout << ".........accelerationCalculator........." << i << ".........accelerationCalculator........." << std::endl;
         particlesUpdater();
-        // std::cout << ".........particlesUpdater........." << i << ".........particlesUpdater........." << std::endl;
         boxExpander();
-        // std::cout << "..........................." << i << "..........................." << std::endl;
+        iteration++;
+        if (iteration % 10 == 0)
+        {
+            if (flag == true)
+            {
+                SaveToFile(this->densityBuffer, this->numOfCellsPerDim, *folderPath);
+            }
+        }
     }
 }
