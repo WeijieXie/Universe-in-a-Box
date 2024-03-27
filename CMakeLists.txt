@@ -20,7 +20,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
   # message(STATUS "NOT DEBUG mode...")
 # endif()
 
-set(CMAKE_CXX_FLAGS "-O0 -g")
+set(CMAKE_CXX_FLAGS "-O3")
 
 find_package(OpenMP REQUIRED)
 find_package(Catch2 3 REQUIRED)
