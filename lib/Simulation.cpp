@@ -227,10 +227,13 @@ void Simulation::run(std::optional<std::string> folderPath)
         boxExpander();
         iteration++;
         if (iteration % 10 == 0)
+        // if (true)
         {
             if (flag == true)
             {
-                SaveToFile(this->densityBuffer, this->numOfCellsPerDim, *folderPath);
+                std::string full_path = *folderPath + "/" + "iteration" + std::to_string(iteration) + ".pbm";
+                SaveToFile(this->densityBuffer, this->numOfCellsPerDim, full_path);
+                // std::cout << this->densityBuffer << " " << this->numOfCellsPerDim << " " << full_path << std::endl;
             }
         }
     }
