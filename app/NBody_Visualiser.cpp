@@ -1,4 +1,5 @@
 #include "Simulation.hpp"
+#include "data.hpp"
 
 #include <iostream>
 #include <string>
@@ -17,7 +18,7 @@ int main(int argc, char *argv[])
     double timeMax = 1.5;
     double timeStep = 0.01;
     double expanFac = 1.0;
-    std::string outputFolder;
+    std::optional<std::string> outputFolder = std::nullopt;
     int seed = 23093556;
 
     for (int i = 1; i < argc; ++i)
@@ -73,8 +74,12 @@ int main(int argc, char *argv[])
     }
 
     int numOfParticles = pow(numOfCellsPerDim, 3) * numOfParticlesPerCell;
+
+    // particles initParticlesTest = particles({{0.5, 0.5, 0.5}, {0.999, 0.999, 0.999}, {0.999, 0.999, 0.999}});
+    // particles initParticles = initParticlesTest;
+
     particles initParticles = particles(numOfParticles, seed);
-    particle::massSetter(100000.0/numOfParticlesPerCell);
+    particle::massSetter(100000.0 / numOfParticlesPerCell);
     Simulation simulation(timeMax, timeStep, initParticles, 100.0, numOfCellsPerDim, expanFac);
     simulation.run(outputFolder);
 
