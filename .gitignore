@@ -33,3 +33,6 @@
 
 # build files
 build/*
+
+# density images
+*.pbm
