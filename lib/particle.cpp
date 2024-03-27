@@ -29,11 +29,11 @@ void particle::positionSetter(std::vector<double> positionNew)
         {
             // std::cout << "smaller than 0.0 ......................................" << std::endl;
             position[i] = std::modf(positionNew[i], &intePart) + 1.0;
-            // if (position[i] == 1.0)
-            // {
-            //     position[i] = 0.0;
-            //     std::cout << "................................................................................." << std::endl;
-            // }
+            if (position[i] == 1.0)
+            {
+                position[i] = 0.0;
+                // std::cout << "................................................................................." << std::endl;
+            }
         }
         else if (positionNew[i] >= 1.0)
         {
