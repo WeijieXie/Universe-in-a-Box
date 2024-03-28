@@ -21,6 +21,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # endif()
 
 set(CMAKE_CXX_FLAGS "-O3")
+# set(CMAKE_CXX_FLAGS "-O0 -g")
 
 find_package(OpenMP REQUIRED)
 find_package(Catch2 3 REQUIRED)
