@@ -50,7 +50,7 @@ public:
     int indexCalculator(int i, int j, int k);
     void densityCalculator();
     void potentialCalculator();
-    void accelerationCalculator();
+    void accelerationCalculator(std::vector<double> potentialRealPart);
     void particlesUpdater();
     void boxExpander();
 

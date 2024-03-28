@@ -124,7 +124,7 @@ void Simulation::potentialCalculator()
     }
 }
 
-void Simulation::accelerationCalculator()
+void Simulation::accelerationCalculator(std::vector<double> potentialRealPart)
 {
     int index = 0;
     for (int i = 0; i < this->numOfCellsPerDim; i++)
@@ -135,9 +135,9 @@ void Simulation::accelerationCalculator()
             {
                 index = indexCalculator(i, j, k);
 
-                this->acceleration[index][0] = (this->potentialRealPart[indexCalculator(wrapHelper(i - 1), j, k)] - this->potentialRealPart[indexCalculator(wrapHelper(i + 1), j, k)]) / (2.0 * this->cellWidth);
-                this->acceleration[index][1] = (this->potentialRealPart[indexCalculator(i, wrapHelper(j - 1), k)] - this->potentialRealPart[indexCalculator(i, wrapHelper(j + 1), k)]) / (2.0 * this->cellWidth);
-                this->acceleration[index][2] = (this->potentialRealPart[indexCalculator(i, j, wrapHelper(k - 1))] - this->potentialRealPart[indexCalculator(i, j, wrapHelper(k + 1))]) / (2.0 * this->cellWidth);
+                this->acceleration[index][0] = (potentialRealPart[indexCalculator(wrapHelper(i - 1), j, k)] - potentialRealPart[indexCalculator(wrapHelper(i + 1), j, k)]) / (2.0 * this->cellWidth);
+                this->acceleration[index][1] = (potentialRealPart[indexCalculator(i, wrapHelper(j - 1), k)] - potentialRealPart[indexCalculator(i, wrapHelper(j + 1), k)]) / (2.0 * this->cellWidth);
+                this->acceleration[index][2] = (potentialRealPart[indexCalculator(i, j, wrapHelper(k - 1))] - potentialRealPart[indexCalculator(i, j, wrapHelper(k + 1))]) / (2.0 * this->cellWidth);
             }
         }
     }
@@ -209,7 +209,7 @@ void Simulation::run(std::optional<std::string> folderPath)
             }
         }
         potentialCalculator();
-        accelerationCalculator();
+        accelerationCalculator(this->potentialRealPart);
         particlesUpdater();
         boxExpander();
     }
