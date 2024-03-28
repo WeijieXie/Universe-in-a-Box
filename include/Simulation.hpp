@@ -51,7 +51,7 @@ public:
     void densityCalculator();
     void potentialCalculator();
     void accelerationCalculator(std::vector<double> potentialRealPart);
-    void particlesUpdater();
+    void particlesUpdater(std::vector<std::vector<double>> acceleration);
     void boxExpander();
 
     /**

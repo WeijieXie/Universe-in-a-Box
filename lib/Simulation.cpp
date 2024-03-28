@@ -143,13 +143,13 @@ void Simulation::accelerationCalculator(std::vector<double> potentialRealPart)
     }
 }
 
-void Simulation::particlesUpdater()
+void Simulation::particlesUpdater(std::vector<std::vector<double>> acceleration)
 {
     int index = 0;
     for (auto iter = this->particlesSimu.particleInfo.begin(); iter < this->particlesSimu.particleInfo.end(); iter++)
     {
         index = cellIdentifier(iter->position);
-        iter->updater(this->acceleration[index]);
+        iter->updater(acceleration[index]);
     }
 }
 
@@ -210,7 +210,7 @@ void Simulation::run(std::optional<std::string> folderPath)
         }
         potentialCalculator();
         accelerationCalculator(this->potentialRealPart);
-        particlesUpdater();
+        particlesUpdater(this->acceleration);
         boxExpander();
     }
 }
