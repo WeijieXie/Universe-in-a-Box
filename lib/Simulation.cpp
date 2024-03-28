@@ -1,5 +1,4 @@
 #include "Simulation.hpp"
-#include "Utils.hpp"
 
 Simulation::Simulation(double timeMax, double timeStep, particles initParticles, double width, int numOfCellsPerDim, double expanFac)
 {
@@ -59,33 +58,25 @@ Simulation::~Simulation()
 
 int Simulation::cellIdentifier(std::vector<double> position)
 {
-    // double intePart = 0.0;
     double quotient = 0.0;
     int index = 0;
     for (int i = 0; i < 3; ++i)
     {
-        // std::modf(position[i] / this->relCellWidth, &intePart); // get the integer part from the division to get the index of each coordinates of the cell
-        quotient = std::floor(position[i] / this->relCellWidth);
-        index += quotient * pow(this->numOfCellsPerDim, 2 - i); // get the index of the cell in the 1-d array
-        // std::cout << quotient << " ";
+        quotient = std::floor(position[i] / this->relCellWidth); // get the integer part from the division to get the index of each coordinates of the cell
+        index += quotient * pow(this->numOfCellsPerDim, 2 - i);  // get the index of the cell in the 1-d array
     }
-    // std::cout << "quotient" << std::endl;
     return static_cast<int>(index);
 }
 
 int Simulation::wrapHelper(int i)
 {
-    // if (i > this->numOfCellsPerDim)
     if (i == this->numOfCellsPerDim)
 
     {
-        // std::cout << "error!!!!!!!!!!!!!!!" << std::endl;
         return 0;
     }
     else if (i == -1)
     {
-        // std::cout << "error!!!!!!!!!!!!!!!" << std::endl;
-        // return this->numOfCellsPerDim;
         return this->numOfCellsPerDim - 1;
     }
     else
@@ -102,26 +93,12 @@ int Simulation::indexCalculator(int i, int j, int k)
 
 void Simulation::densityCalculator()
 {
-    // double normalizedPos = 0.0;
-    // double intePart = 0.0;
     int index = 0;
 
-    // memset(this->densityBuffer, 0.0, sizeof(fftw_complex) * this->numOfCells); // initialize the buffer with all entry to be 0.0
-
-    for (int i = 0; i < this->numOfCells; ++i)
-    {
-        this->densityBuffer[i][0] = 0.0; // set the real part 0.0
-        this->densityBuffer[i][1] = 0.0; // set the imagine part 0.0
-    }
+    memset(this->densityBuffer, 0.0, sizeof(fftw_complex) * this->numOfCells); // initialize the buffer with all entry to be 0.0
 
     for (auto iter = this->particlesSimu.particleInfo.begin(); iter < this->particlesSimu.particleInfo.end(); iter++)
     {
-        // index = 0;
-        // for (int i = 0; i < 3; ++i)
-        // {
-        //     std::modf(iter->position[i] / this->relCellWidth, &intePart); // get the integer part from the division to get the index of each coordinates of the cell
-        //     index += intePart * pow(this->numOfCellsPerDim, 2 - i);       // get the index of the cell in the 1-d array
-        // }
         index = cellIdentifier(iter->position);
         this->densityBuffer[index][0] += this->densityContributionPerParticle; // add the density to the desity buffer representing the cell
     }
@@ -172,7 +149,6 @@ void Simulation::particlesUpdater()
     for (auto iter = this->particlesSimu.particleInfo.begin(); iter < this->particlesSimu.particleInfo.end(); iter++)
     {
         index = cellIdentifier(iter->position);
-        // std::cout << iter->position[0] << " " << iter->position[1] << " " << iter->position[2] << " " << index << std::endl;
         iter->updater(this->acceleration[index]);
     }
 }
@@ -193,12 +169,10 @@ void Simulation::boxExpander()
             for (int k = 0; k < this->numOfCellsPerDim; k++)
             {
                 index = indexCalculator(i, j, k);
-                // index = i * pow(this->numOfCellsPerDim, 2) + j * this->numOfCellsPerDim + k;
                 this->kSquare[index] = (k * k + j * j + i * i) / this->wSquare;
             }
         }
     }
-
     for (auto iter = this->particlesSimu.particleInfo.begin(); iter < this->particlesSimu.particleInfo.end(); iter++)
     {
         iter->velocityRescaler(this->expanFac);
@@ -207,34 +181,36 @@ void Simulation::boxExpander()
 
 void Simulation::run(std::optional<std::string> folderPath)
 {
-    int iteration = -1;
     bool flag = false;
+    int numSteps = static_cast<int>(std::floor(this->timeMax / this->timeStep));
+
     if (folderPath.has_value())
     {
         flag = true;
-        if (!std::filesystem::exists(*folderPath))
+        if (!std::filesystem::exists("Images"))
         {
-            std::filesystem::create_directories(*folderPath);
+            std::filesystem::create_directories("Images");
+        }
+        if (!std::filesystem::exists(std::string("Images") + "/" + (*folderPath)))
+        {
+            std::filesystem::create_directories(std::string("Images") + "/" + (*folderPath));
         }
     }
 
-    for (double i = 0.0; i < this->timeMax; i += this->timeStep)
+    for (int i = 0; i <= numSteps; i++)
     {
         densityCalculator();
+        if (i % 10 == 0)
+        {
+            if (flag == true)
+            {
+                std::string full_path = std::string("Images") + "/" + (*folderPath) + "/" + "iteration" + std::to_string(i) + ".pbm";
+                SaveToFile(this->densityBuffer, this->numOfCellsPerDim, full_path);
+            }
+        }
         potentialCalculator();
         accelerationCalculator();
         particlesUpdater();
         boxExpander();
-        iteration++;
-        if (iteration % 10 == 0)
-        // if (true)
-        {
-            if (flag == true)
-            {
-                std::string full_path = *folderPath + "/" + "iteration" + std::to_string(iteration) + ".pbm";
-                SaveToFile(this->densityBuffer, this->numOfCellsPerDim, full_path);
-                // std::cout << this->densityBuffer << " " << this->numOfCellsPerDim << " " << full_path << std::endl;
-            }
-        }
     }
 }
