@@ -18,7 +18,20 @@ public:
     static const particles initParticlesRandom;
     static const particles initParticlesOneInMid;
     static const particles initParticlesMultiple;
+    static const particles initParticlesAB;
 
     static const fftw_complex densityBufferForSingleParticle[8];
     static const fftw_complex densityBufferForMultipleParticles[8];
+
+    // for gradient tests
+    static const std::vector<std::vector<double>> zeroGradient;
+    static const std::vector<double> potentialRealPart_27;
+    static const std::vector<std::vector<double>> gradient_27;
+
+    // for updater tests
+    static const std::vector<std::vector<double>> acceleration;
+    static const std::vector<double> partilceAPos;
+    static const std::vector<double> partilceASpeed;
+    static const std::vector<double> partilceBPos;
+    static const std::vector<double> partilceBSpeed;
 };

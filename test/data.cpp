@@ -29,3 +29,16 @@ const particles test_data::initParticlesMultiple = particles({{0.0, 0.0, 0.0},  
 
 const fftw_complex test_data::densityBufferForSingleParticle[] = {{0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0}, {1 * densityContributionPerParticle, 0.0}};
 const fftw_complex test_data::densityBufferForMultipleParticles[] = {{4 * densityContributionPerParticle, 0.0}, {4 * densityContributionPerParticle, 0.0}, {1 * densityContributionPerParticle, 0.0}, {2 * densityContributionPerParticle, 0.0}, {0.0, 0.0}, {0.0, 0.0}, {0.0, 0.0}, {3 * densityContributionPerParticle, 0.0}};
+
+// for gradient tests
+const std::vector<std::vector<double>> test_data::zeroGradient = {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}};
+const std::vector<double> test_data::potentialRealPart_27 = {1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+const std::vector<std::vector<double>> test_data::gradient_27 = {{0.0, 0.0, 0.0}, {0.0, 0.0, 1.0 / (test_data::width / 3 * 2)}, {0.0, 0.0, -1.0 / (test_data::width / 3 * 2)}, {0.0, 1.0 / (test_data::width / 3 * 2), 0.0}, {-1.0 / (test_data::width / 3 * 2), 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, -1.0 / (test_data::width / 3 * 2), 0.0}, {0.0, 0.0, 0.0}, {1.0 / (test_data::width / 3 * 2), 0.0, 0.0}, {1.0 / (test_data::width / 3 * 2), 0.0, 0.0}, {0.0, -1.0 / (test_data::width / 3 * 2), 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, -1.0 / (test_data::width / 3 * 2)}, {0.0, 0.0, 0.0}, {0.0, 0.0, 1.0 / (test_data::width / 3 * 2)}, {0.0, 0.0, 0.0}, {0.0, 1.0 / (test_data::width / 3 * 2), 0.0}, {-1.0 / (test_data::width / 3 * 2), 0.0, 0.0}, {-1.0 / (test_data::width / 3 * 2), 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 1.0 / (test_data::width / 3 * 2), 0.0}, {0.0, 0.0, 0.0}, {1.0 / (test_data::width / 3 * 2), 0.0, 0.0}, {0.0, -1.0 / (test_data::width / 3 * 2), 0.0}, {0.0, 0.0, 1.0 / (test_data::width / 3 * 2)}, {0.0, 0.0, -1.0 / (test_data::width / 3 * 2)}, {0.0, 0.0, 0.0}};
+
+// for updater tests
+const particles test_data::initParticlesAB = particles({{0.01, 0.01, 0.01}, {0.6, 0.6, 0.6}});
+const std::vector<std::vector<double>> test_data::acceleration = {{-10, -10, -10}, {-2, -1, -3}, {3, 9, 7}, {-10, -10, -10}, {-2, -1, -3}, {3, 9, 7}, {-10, -10, -10}, {-2, -1, -3}};
+const std::vector<double> test_data::partilceAPos = {0.79, 0.8, 0.78};
+const std::vector<double> test_data::partilceASpeed = {-1.2, -1.1, -1.3};
+const std::vector<double> test_data::partilceBPos = {0.54, 0.57, 0.51};
+const std::vector<double> test_data::partilceBSpeed = {-0.4, -0.2, -0.6};
