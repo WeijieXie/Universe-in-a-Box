@@ -74,12 +74,9 @@ int main(int argc, char *argv[])
     }
 
     int numOfParticles = pow(numOfCellsPerDim, 3) * numOfParticlesPerCell;
-
-    // particles initParticlesTest = particles({{0.5, 0.5, 0.5}, {0.999, 0.999, 0.999}, {0.999, 0.999, 0.999}});
-    // particles initParticles = initParticlesTest;
-
     particles initParticles = particles(numOfParticles, seed);
-    particle::massSetter(100000.0 / numOfParticlesPerCell);
+    particle::massSetter(100000.0 / numOfParticles);
+    
     Simulation simulation(timeMax, timeStep, initParticles, 100.0, numOfCellsPerDim, expanFac);
     simulation.run(outputFolder);
 
