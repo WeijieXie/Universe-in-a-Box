@@ -201,7 +201,7 @@ TEST_CASE("Test the gradient in a cube with 2*2*2 cells", "Gradient Tests")
     // Declare simulation with particle setup, width, and number of cells.
     // TODO: Simulation sim(...);
     Simulation simulation(test_data::timeMax, test_data::timeStep, test_data::initParticlesMultiple, test_data::width, test_data::numOfCellsPerDim, test_data::expanFac);
-    simulation.accelerationCalculator(simulation.potentialRealPart);
+    simulation.accelerationCalculator(simulation.potentialBuffer);
     REQUIRE(simulation.acceleration == test_data::zeroGradient); // in a 2*2*2 cube, the gradient should be 0 everywhere because of wrapping around
 }
 
@@ -213,7 +213,7 @@ TEST_CASE("Test the gradient in a cube with 3*3*3 cells", "Gradient Tests")
     // Declare simulation with particle setup, width, and number of cells.
     // TODO: Simulation sim(...);
     Simulation simulation(test_data::timeMax, test_data::timeStep, test_data::initParticlesMultiple, test_data::width, 3, test_data::expanFac);
-    simulation.accelerationCalculator(test_data::potentialRealPart_27);
+    simulation.accelerationCalculator(test_data::potential_27);
     REQUIRE(simulation.acceleration == test_data::gradient_27);
 }
 
