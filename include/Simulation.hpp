@@ -48,8 +48,8 @@ public:
     int wrapHelper(int i);
     int indexCalculator(int i, int j, int k);
     void kSquareUpdater();
-    void densityCalculator();
-    void potentialCalculator();
+    void densityCalculator(fftw_complex *densityBuffer);
+    void potentialCalculator(fftw_complex *frequencyBuffer);
     void accelerationCalculator(fftw_complex *potential);
     void particlesUpdater(std::vector<std::vector<double>> acceleration);
     void boxExpander();

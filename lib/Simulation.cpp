@@ -95,7 +95,7 @@ void Simulation::kSquareUpdater()
     }
 }
 
-void Simulation::densityCalculator()
+void Simulation::densityCalculator(fftw_complex *densityBuffer)
 {
     int index = 0;
 
@@ -108,7 +108,7 @@ void Simulation::densityCalculator()
     }
 }
 
-void Simulation::potentialCalculator()
+void Simulation::potentialCalculator(fftw_complex *frequencyBuffer)
 {
     fftw_execute(this->forward_plan);
 
@@ -192,7 +192,7 @@ void Simulation::run(std::optional<std::string> folderPath)
 
     for (int i = 0; i <= numSteps; i++)
     {
-        densityCalculator();
+        densityCalculator(this->densityBuffer);
         if (i % 10 == 0)
         {
             if (flag == true)
@@ -201,7 +201,7 @@ void Simulation::run(std::optional<std::string> folderPath)
                 SaveToFile(this->densityBuffer, this->numOfCellsPerDim, full_path);
             }
         }
-        potentialCalculator();
+        potentialCalculator(this->frequencyBuffer);
         accelerationCalculator(this->potentialBuffer);
         particlesUpdater(this->acceleration);
         boxExpander();

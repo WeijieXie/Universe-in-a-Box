@@ -39,7 +39,7 @@ TEST_CASE("Test the imaginary part of density to be 0.0", "Density Tests")
     Simulation simulation(test_data::timeMax, test_data::timeStep, test_data::initParticlesRandom, test_data::width, numOfCellsPerDim, test_data::expanFac);
 
     // TODO: calculate density
-    simulation.densityCalculator();
+    simulation.densityCalculator(simulation.densityBuffer);
 
     int size = 0;
     for (auto iter = simulation.densityBuffer; iter < simulation.densityBuffer + simulation.numOfCells; iter++)
@@ -68,7 +68,7 @@ TEST_CASE("Test density of an empty space", "Density Tests")
     Simulation simulation(test_data::timeMax, test_data::timeStep, test_data::initParticlesEmpty, test_data::width, numOfCellsPerDim, test_data::expanFac);
 
     // TODO: calculate density
-    simulation.densityCalculator();
+    simulation.densityCalculator(simulation.densityBuffer);
 
     int size = 0;
     for (auto iter = simulation.densityBuffer; iter < simulation.densityBuffer + simulation.numOfCells; iter++)
@@ -96,7 +96,7 @@ TEST_CASE("Test density of single particle", "Density Tests")
     Simulation simulation(test_data::timeMax, test_data::timeStep, test_data::initParticlesOneInMid, test_data::width, test_data::numOfCellsPerDim, test_data::expanFac);
 
     // TODO: calculate density
-    simulation.densityCalculator();
+    simulation.densityCalculator(simulation.densityBuffer);
 
     int size = 0;
     for (auto iter = simulation.densityBuffer; iter < simulation.densityBuffer + simulation.numOfCells; iter++)
@@ -123,7 +123,7 @@ TEST_CASE("Test density of multiple particles", "Density Tests")
     Simulation simulation(test_data::timeMax, test_data::timeStep, test_data::initParticlesMultiple, test_data::width, test_data::numOfCellsPerDim, test_data::expanFac);
 
     // TODO: calculate density
-    simulation.densityCalculator();
+    simulation.densityCalculator(simulation.densityBuffer);
 
     int size = 0;
     for (auto iter = simulation.densityBuffer; iter < simulation.densityBuffer + simulation.numOfCells; iter++)
@@ -160,9 +160,9 @@ TEST_CASE("Test potential function for single particle", "Potential Tests")
     // TODO: Simulation sim(...);
     Simulation simulation(test_data::timeMax, test_data::timeStep, test_data::initParticlesOneInMid, width, ncells, test_data::expanFac);
     // TODO: calculate density
-    simulation.densityCalculator();
+    simulation.densityCalculator(simulation.densityBuffer);
     // TODO: calculate potential
-    simulation.potentialCalculator();
+    simulation.potentialCalculator(simulation.frequencyBuffer);
 
     double w_c = width / ncells;
     // Look at the potential function along the x axis
