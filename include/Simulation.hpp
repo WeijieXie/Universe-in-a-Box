@@ -36,7 +36,6 @@ public:
     fftw_complex *densityBuffer = nullptr;
     fftw_complex *potentialBuffer = nullptr;
     fftw_complex *frequencyBuffer = nullptr;
-    std::vector<double> potentialRealPart;
     std::vector<std::vector<double>> acceleration;
 
     fftw_plan forward_plan;
@@ -48,9 +47,10 @@ public:
     int cellIdentifier(std::vector<double> position);
     int wrapHelper(int i);
     int indexCalculator(int i, int j, int k);
+    void kSquareUpdater();
     void densityCalculator();
     void potentialCalculator();
-    void accelerationCalculator(std::vector<double> potentialRealPart);
+    void accelerationCalculator(fftw_complex *potential);
     void particlesUpdater(std::vector<std::vector<double>> acceleration);
     void boxExpander();
 
