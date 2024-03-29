@@ -25,7 +25,8 @@ public:
 
     // for gradient tests
     static const std::vector<std::vector<double>> zeroGradient;
-    static const std::vector<double> potentialRealPart_27;
+    static fftw_complex potential_27_data[27];
+    static fftw_complex* potential_27;
     static const std::vector<std::vector<double>> gradient_27;
 
     // for updater tests
