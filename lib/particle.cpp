@@ -22,7 +22,6 @@ void particle::dtSetter(double dt)
 
 void particle::positionSetter(std::vector<double> positionNew)
 {
-    double frac = 0.0;
     for (int i = 0; i < 3; ++i)
     {
         if (positionNew[i] < 0.0)
