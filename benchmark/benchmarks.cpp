@@ -7,11 +7,27 @@
 class BenchmarkData
 {
 public:
-    BenchmarkData(std::string benchmark_name, int threads) : name(benchmark_name), num_threads(threads) {}
+    BenchmarkData(std::string benchmark_name, int threads) : name(benchmark_name), num_threads(threads)
+    {
+        // set the number of threads
+        omp_set_num_threads(threads);
+
+// check whether the number of threads set successful
+#pragma omp parallel
+        {
+            int threadID = omp_get_thread_num();
+            if (threadID == 0)
+            {
+                int actualThreads = omp_get_num_threads();
+                std::cout << "Actual number of threads have been setted as: " << actualThreads << std::endl;
+            }
+        }
+    }
+
     double time;
     std::string name;
     int num_threads;
-    //use for additional context such as number of particles / cells 
+    // use for additional context such as number of particles / cells
     std::string info;
 
     void start()
@@ -28,7 +44,7 @@ public:
     std::chrono::high_resolution_clock::time_point t1;
 };
 
-std::ostream& operator<<(std::ostream &os, const BenchmarkData& b)
+std::ostream &operator<<(std::ostream &os, const BenchmarkData &b)
 {
     std::cout << "Benchmarking " << b.name << " with " << b.num_threads << " threads." << std::endl;
     std::cout << "Time = " << b.time << std::endl;
@@ -38,6 +54,7 @@ std::ostream& operator<<(std::ostream &os, const BenchmarkData& b)
 
 int main()
 {
+    BenchmarkData("Simulation::densityCalculator", 12);
 
     return 0;
 }
