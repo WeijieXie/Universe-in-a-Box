@@ -11,6 +11,7 @@ Simulation::Simulation(double timeMax, double timeStep, particles initParticles,
     this->expanFac = expanFac;
 
     this->numOfCells = pow(numOfCellsPerDim, 3);
+    this->numOfParticles = this->particlesSimu.particleInfo.size();
     this->volOfBox = pow(this->width, 3);
     this->volOfCell = this->volOfBox / this->numOfCells;
     this->relCellWidth = 1.0 / this->numOfCellsPerDim;
@@ -80,15 +81,24 @@ int Simulation::indexCalculator(int i, int j, int k)
 
 void Simulation::kSquareUpdater()
 {
-    int index = 0;
-#pragma omp parallel for collapse(3) schedule(guided)
+    // #pragma omp parallel for collapse(3)
+    // #pragma omp parallel for collapse(2)
+    // #pragma omp parallel for collapse(2) schedule(static)
+    // #pragma omp parallel for collapse(2) schedule(guided)
+    // #pragma omp parallel for
+#pragma omp parallel for collapse(2) schedule(dynamic)
     for (int i = 0; i < this->numOfCellsPerDim; i++)
     {
         for (int j = 0; j < this->numOfCellsPerDim; j++)
         {
             for (int k = 0; k < this->numOfCellsPerDim; k++)
             {
-                index = indexCalculator(i, j, k);
+                int index = indexCalculator(i, j, k);
+                // bool is_thread_even = (omp_get_thread_num() % 2 == 0);
+                // if (is_thread_even)
+                // {
+                //     std::this_thread::sleep_for(std::chrono::microseconds(1));
+                // }
                 this->kSquare[index] = (k * k + j * j + i * i) / this->wSquare;
             }
         }
@@ -97,15 +107,110 @@ void Simulation::kSquareUpdater()
 
 void Simulation::densityCalculator()
 {
-    int index = 0;
+    // // without parallelization
+    // memset(this->densityBuffer, 0.0, sizeof(fftw_complex) * this->numOfCells); // initialize the buffer with all entry to be 0.0
+    // int index = 0;
+    // for (int i = 0; i < this->numOfParticles; ++i)
+    // {
+    //     index = cellIdentifier(this->particlesSimu.particleInfo[i].position);
+    //     this->densityBuffer[index][0] += this->densityContributionPerParticle; // add the density to the desity buffer representing the cell
+    // }
 
+    //     // parallelization A
+    //     memset(this->densityBuffer, 0.0, sizeof(fftw_complex) * this->numOfCells); // initialize the buffer with all entry to be 0.0
+    // #pragma omp parallel for
+    //     for (int i = 0; i < this->numOfParticles; ++i)
+    //     {
+    //         int index = cellIdentifier(this->particlesSimu.particleInfo[i].position);
+    // #pragma omp critical
+    //         this->densityBuffer[index][0] += this->densityContributionPerParticle; // add the density to the desity buffer representing the cell
+    //     }
+
+    //     // parallelization B
+    //     memset(densityBuffer, 0.0, sizeof(fftw_complex) * this->numOfCells); // initialize the buffer with all entry to be 0.0
+    // #pragma omp parallel for reduction(+ : densityBuffer[index][0])
+    //     for (int i = 0; i < this->numOfParticles; ++i)
+    //     {
+    //         int index = cellIdentifier(this->particlesSimu.particleInfo[i].position);
+    // #pragma omp critical
+    //         densityBuffer[index][0] += this->densityContributionPerParticle; // add the density to the desity buffer representing the cell
+    //     }
+
+    //     // parallelization C
+    //     memset(this->densityBuffer, 0.0, sizeof(fftw_complex) * this->numOfCells); // initialize the buffer with all entry to be 0.0
+    // #pragma omp parallel for
+    //     for (int i = 0; i < this->numOfParticles; ++i)
+    //     {
+    //         int index = cellIdentifier(this->particlesSimu.particleInfo[i].position);
+    // #pragma omp atomic
+    //         this->densityBuffer[index][0] += this->densityContributionPerParticle; // add the density to the desity buffer representing the cell
+    //     }
+
+    //     // parallelization D
+    //     memset(this->densityBuffer, 0.0, sizeof(fftw_complex) * this->numOfCells); // initialize the buffer with all entry to be 0.0
+    // #pragma omp parallel
+    //     {
+    //         std::vector<double> localDensity(this->numOfCells, 0.0);
+    // #pragma omp for nowait
+    //         for (int i = 0; i < this->numOfParticles; ++i)
+    //         {
+    //             int index = cellIdentifier(this->particlesSimu.particleInfo[i].position);
+    //             localDensity[index] += this->densityContributionPerParticle; // add the density to the desity buffer representing the cell
+    //         }
+    // #pragma omp critical
+    //         for (int i = 0; i < this->numOfCells; ++i)
+    //         {
+    //             this->densityBuffer[i][0] += localDensity[i];
+    //         }
+    //     }
+
+    //     // parallelization E
+    //     memset(this->densityBuffer, 0.0, sizeof(fftw_complex) * this->numOfCells); // initialize the buffer with all entry to be 0.0
+    // #pragma omp parallel
+    //     {
+    //         std::vector<double> localDensity(this->numOfCells, 0.0);
+    // #pragma omp for nowait
+    //         for (int i = 0; i < this->numOfParticles; ++i)
+    //         {
+    //             int index = cellIdentifier(this->particlesSimu.particleInfo[i].position);
+    //             localDensity[index] += this->densityContributionPerParticle; // add the density to the desity buffer representing the cell
+    //         }
+    //         for (int i = 0; i < this->numOfCells; ++i)
+    //         {
+    // #pragma omp atomic
+    //             this->densityBuffer[i][0] += localDensity[i];
+    //         }
+    //     }
+
+    // parallelization C(static)
     memset(this->densityBuffer, 0.0, sizeof(fftw_complex) * this->numOfCells); // initialize the buffer with all entry to be 0.0
-                                                                               // #pragma omp parallel for reduction(+ : this->densityBuffer[index][0]) schedule(guided)
-    for (auto iter = this->particlesSimu.particleInfo.begin(); iter < this->particlesSimu.particleInfo.end(); iter++)
+#pragma omp parallel for schedule(static)
+    for (int i = 0; i < this->numOfParticles; ++i)
     {
-        index = cellIdentifier(iter->position);
+        int index = cellIdentifier(this->particlesSimu.particleInfo[i].position);
+#pragma omp atomic
         this->densityBuffer[index][0] += this->densityContributionPerParticle; // add the density to the desity buffer representing the cell
     }
+
+    //     // parallelization C(guided)
+    //     memset(this->densityBuffer, 0.0, sizeof(fftw_complex) * this->numOfCells); // initialize the buffer with all entry to be 0.0
+    // #pragma omp parallel for schedule(guided)
+    //     for (int i = 0; i < this->numOfParticles; ++i)
+    //     {
+    //         int index = cellIdentifier(this->particlesSimu.particleInfo[i].position);
+    // #pragma omp atomic
+    //         this->densityBuffer[index][0] += this->densityContributionPerParticle; // add the density to the desity buffer representing the cell
+    //     }
+
+    //         // parallelization C(dynamic)
+    //     memset(this->densityBuffer, 0.0, sizeof(fftw_complex) * this->numOfCells); // initialize the buffer with all entry to be 0.0
+    // #pragma omp parallel for schedule(dynamic)
+    //     for (int i = 0; i < this->numOfParticles; ++i)
+    //     {
+    //         int index = cellIdentifier(this->particlesSimu.particleInfo[i].position);
+    // #pragma omp atomic
+    //         this->densityBuffer[index][0] += this->densityContributionPerParticle; // add the density to the desity buffer representing the cell
+    //     }
 }
 
 void Simulation::potentialCalculator()
@@ -114,6 +219,10 @@ void Simulation::potentialCalculator()
 
     this->frequencyBuffer[0][0] = 0.0;
     this->frequencyBuffer[0][1] = 0.0;
+// #pragma omp parallel for
+// #pragma omp parallel for schedule(static)
+// #pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(guided)
     for (int i = 1; i < this->numOfCells; i++)
     {
         this->frequencyBuffer[i][0] *= -4 * this->PI / kSquare[i] * this->fNorm;
@@ -121,23 +230,23 @@ void Simulation::potentialCalculator()
     }
 
     fftw_execute(this->inverse_plan);
-
-    // for (int i = 0; i < this->numOfCells; i++)
-    // {
-    //     this->potentialRealPart[i] = this->potentialBuffer[i][0];
-    // }
 }
 
 void Simulation::accelerationCalculator(fftw_complex *potential)
 {
-    int index = 0;
+// #pragma omp parallel for collapse(3)
+// #pragma omp parallel for collapse(2)
+// #pragma omp parallel for
+// #pragma omp parallel for collapse(2) schedule(static)
+// #pragma omp parallel for collapse(2) schedule(guided)
+#pragma omp parallel for collapse(2) schedule(dynamic)
     for (int i = 0; i < this->numOfCellsPerDim; i++)
     {
         for (int j = 0; j < this->numOfCellsPerDim; j++)
         {
             for (int k = 0; k < this->numOfCellsPerDim; k++)
             {
-                index = indexCalculator(i, j, k);
+                int index = indexCalculator(i, j, k);
 
                 this->acceleration[index][0] = (potential[indexCalculator(wrapHelper(i - 1), j, k)][0] - potential[indexCalculator(wrapHelper(i + 1), j, k)][0]) / (2.0 * this->cellWidth);
                 this->acceleration[index][1] = (potential[indexCalculator(i, wrapHelper(j - 1), k)][0] - potential[indexCalculator(i, wrapHelper(j + 1), k)][0]) / (2.0 * this->cellWidth);
@@ -149,11 +258,14 @@ void Simulation::accelerationCalculator(fftw_complex *potential)
 
 void Simulation::particlesUpdater(std::vector<std::vector<double>> acceleration)
 {
-    int index = 0;
-    for (auto iter = this->particlesSimu.particleInfo.begin(); iter < this->particlesSimu.particleInfo.end(); iter++)
+// #pragma omp parallel for
+// #pragma omp parallel for schedule(guided)
+// #pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(static)
+    for (int i = 0; i < this->numOfParticles; ++i)
     {
-        index = cellIdentifier(iter->position);
-        iter->updater(acceleration[index]);
+        int index = cellIdentifier(this->particlesSimu.particleInfo[i].position);
+        this->particlesSimu.particleInfo[i].updater(acceleration[index]);
     }
 }
 
@@ -166,9 +278,13 @@ void Simulation::boxExpander()
     this->densityContributionPerParticle = particle::massGetter() / this->volOfCell;
     this->wSquare = this->width * this->width;
     kSquareUpdater();
-    for (auto iter = this->particlesSimu.particleInfo.begin(); iter < this->particlesSimu.particleInfo.end(); iter++)
+// #pragma omp parallel for
+// #pragma omp parallel for schedule(static)
+// #pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(guided)
+    for (int i = 0; i < this->numOfParticles; ++i)
     {
-        iter->velocityRescaler(this->expanFac);
+        this->particlesSimu.particleInfo[i].velocityRescaler(this->expanFac);
     }
 }
 

@@ -11,6 +11,10 @@
 #include <filesystem>
 #include <sstream>
 
+#include <omp.h>
+#include <chrono>
+#include <thread>
+
 class Simulation
 {
 public:
@@ -21,6 +25,7 @@ public:
     double expanFac;
 
     int numOfCells;
+    int numOfParticles;
     double volOfBox;
     double volOfCell;
     double relCellWidth; // which is 1.0/numOfCellsPerDim
