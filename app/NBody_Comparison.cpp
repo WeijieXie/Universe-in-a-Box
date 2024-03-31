@@ -57,7 +57,7 @@ int main(int argc, char **argv)
     vector<double> corrInfo = correlationFunction(simulation.particlesSimu.particleInfo, 100); // calculate the correlation
     int corrInfoSize = corrInfo.size();                                                        // in this case, the size is 100
 
-    printf("Message from Process %d, with ExpansionFactor %f, corrInfo[0] %f\n", process_id, ExpansionFactor, corrInfo.at(0));
+    // printf("Message from Process %d, with ExpansionFactor %f, corrInfo[0] %f\n", process_id, ExpansionFactor, corrInfo.at(0));
 
     if (process_id == 0)
     {
@@ -79,9 +79,9 @@ int main(int argc, char **argv)
                      MPI_COMM_WORLD,
                      &status);
             seq[i] = status.MPI_SOURCE; // store process_id of the sender in seq
-            printf("No. %d data is from process %d\n", i, seq[i]);
+            // printf("No. %d data is from process %d\n", i, seq[i]);
         }
-        printf("%f,%f,%f,%f\n", masterArr[0], masterArr[1 * corrInfoSize], masterArr[2 * corrInfoSize], masterArr[3 * corrInfoSize]);
+        // printf("%f,%f,%f,%f\n", masterArr[0], masterArr[1 * corrInfoSize], masterArr[2 * corrInfoSize], masterArr[3 * corrInfoSize]);
 
         std::filesystem::path path("Correlations");
 
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
         }
 
         path /= outputFolder + ".csv";
-        std::cout << path << std::endl;
+        // std::cout << path << std::endl;
 
         std::ofstream outFile(path);
 
@@ -131,7 +131,7 @@ int main(int argc, char **argv)
                  0,
                  0,
                  MPI_COMM_WORLD);
-        printf("process %d has sent out the data...\n", process_id);
+        // printf("process %d has sent out the data...\n", process_id);
     }
 
     MPI_Finalize();
