@@ -12,7 +12,6 @@ private:
 public:
     std::vector<double> position = {0.0, 0.0, 0.0};
     std::vector<double> velocity = {0.0, 0.0, 0.0};
-    // std::vector<double> acceleration = {0.0, 0.0, 0.0};
 
     particle() = default;
     particle(std::vector<double>);
@@ -24,5 +23,3 @@ public:
     void updater(std::vector<double> acceleration);
     void velocityRescaler(double expanFac);
 };
-
-// double particle::mass = 1.0;
