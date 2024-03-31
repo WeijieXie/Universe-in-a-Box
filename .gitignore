@@ -36,3 +36,6 @@ build/*
 
 # density images
 *.pbm
+
+# correclation
+*.csv
