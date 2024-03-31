@@ -4,9 +4,10 @@
 #include <array>
 #include <string>
 #include <fftw3.h>
+#include "particles.hpp"
 
-using std::vector;
 using std::array;
+using std::vector;
 
 /**
  * @brief Takes a buffer of fftw_complex values and outputs and image
@@ -15,7 +16,7 @@ using std::array;
  * @param n_cells size of buffer in each dimension; total size is n_cells*n_cells*n_cells
  * @param filename image output file path
  */
-void SaveToFile(fftw_complex* density_map, const size_t n_cells, const std::string &filename);
+void SaveToFile(fftw_complex *density_map, const size_t n_cells, const std::string &filename);
 
 /**
  * @brief Calculates a log radial correlation for coordinates 0 <= r < 0.5
@@ -24,4 +25,4 @@ void SaveToFile(fftw_complex* density_map, const size_t n_cells, const std::stri
  * @param n_bins the resolution of the histogram
  * @return vector<double> log of radial correlation function evenly spaced from r = 0 to 0.5
  */
-vector<double> correlationFunction(vector<array<double,3>> positions, int n_bins);
+vector<double> correlationFunction(vector<particle> particleInfo, int n_bins);

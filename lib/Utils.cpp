@@ -64,7 +64,7 @@ void SaveToFile(fftw_complex *density_map, const size_t n_cells, const string &f
     }
 }
 
-vector<double> correlationFunction(vector<array<double, 3>> positions, int n_bins)
+vector<double> correlationFunction(vector<particle> particleInfo, int n_bins)
 {
     if (n_bins <= 0)
     {
@@ -81,15 +81,14 @@ vector<double> correlationFunction(vector<array<double, 3>> positions, int n_bin
     };
 
     // Only take a limited sample of positions if there are too many
-    int N = std::min(1000, int(positions.size()));
+    int N = std::min(1000, int(particleInfo.size()));
     for (int i = 0; i < N; i += 1)
     {
-        for (int j = i; j < N; j += 1)
+        for (int j = i + 1; j < N; j += 1)
         {
-
-            double dx = shortestDistance(positions[i][0], positions[j][0]);
-            double dy = shortestDistance(positions[i][1], positions[j][1]);
-            double dz = shortestDistance(positions[i][2], positions[j][2]);
+            double dx = shortestDistance(particleInfo[i].position[0], particleInfo[j].position[0]);
+            double dy = shortestDistance(particleInfo[i].position[1], particleInfo[j].position[1]);
+            double dz = shortestDistance(particleInfo[i].position[2], particleInfo[j].position[2]);
             double r = std::sqrt(dx * dx + dy * dy + dz * dz);
             if (r < 0.5) // within the 0.5 radius sphere to avoid edge effects from cube
             {
