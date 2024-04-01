@@ -83,7 +83,7 @@ Example usage:
 mpirun -np 4 ./build/bin/NBody_Comparison -o nc51-np10-t1_5-dt0_01-process4 -min 1.00 -max 1.06
 ```
 
-After execution, a CSV file with the simulation's correlation information under different expansion factors will be generated in the specified output path.  
+After execution, a CSV file with the simulation's correlation information under different expansion factors will be generated in the specified output path `Correlations/nc51-np10-t1_5-dt0_01-process4.csv`.  
 
 ## Conclusion
 
