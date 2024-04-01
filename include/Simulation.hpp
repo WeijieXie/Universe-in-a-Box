@@ -30,9 +30,9 @@ public:
     double volOfCell;
     double relCellWidth; // which is 1.0/numOfCellsPerDim
     double cellWidth;
-    double densityContributionPerParticle;
-    double wSquare;
-    std::vector<double> kSquare;
+    double densityContributionPerParticle; // the contribution of a single particle to the density of a cell
+    double wSquare;                        // the square of the width
+    std::vector<double> kSquare;           // the square of the wave vector
     const double PI = 3.141592653589793238463;
     double fNorm;
 
@@ -49,9 +49,9 @@ public:
     Simulation(double timeMax, double timeStep, particles initParticles, double width, int numOfCellsPerDim, double expanFac);
     ~Simulation();
 
-    int cellIdentifier(std::vector<double> position);
-    int wrapHelper(int i);
-    int indexCalculator(int i, int j, int k);
+    int cellIdentifier(std::vector<double> position); // used to identify the cell that a particle is in
+    int wrapHelper(int i);                            // ensures that the index is within the box
+    int indexCalculator(int i, int j, int k);         // used to calculate the index of a cell in the 1D array
     void kSquareUpdater();
     void densityCalculator();
     void potentialCalculator();

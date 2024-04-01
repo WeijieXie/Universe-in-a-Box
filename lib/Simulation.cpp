@@ -20,7 +20,7 @@ Simulation::Simulation(double timeMax, double timeStep, particles initParticles,
     this->wSquare = this->width * this->width;
     this->kSquare = std::vector<double>(this->numOfCells);
     kSquareUpdater();
-    this->fNorm = 1.0 / (8 * this->numOfCells);
+    this->fNorm = 1.0 / (8 * this->numOfCells); // normalization factor
 
     this->densityBuffer = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * this->numOfCells);
     this->potentialBuffer = (fftw_complex *)fftw_malloc(sizeof(fftw_complex) * this->numOfCells);
@@ -31,6 +31,7 @@ Simulation::Simulation(double timeMax, double timeStep, particles initParticles,
     this->inverse_plan = fftw_plan_dft_3d(this->numOfCellsPerDim, this->numOfCellsPerDim, this->numOfCellsPerDim, this->frequencyBuffer, this->potentialBuffer, FFTW_BACKWARD, FFTW_MEASURE);
 }
 
+// Destructor to free the memory allocated for the buffers and destroy the plans
 Simulation::~Simulation()
 {
     fftw_free(this->densityBuffer);
@@ -44,6 +45,7 @@ Simulation::~Simulation()
     fftw_destroy_plan(this->inverse_plan);
 }
 
+// Function to identify the cell that a particle is in
 int Simulation::cellIdentifier(std::vector<double> position)
 {
     double quotient = 0.0;
@@ -56,6 +58,7 @@ int Simulation::cellIdentifier(std::vector<double> position)
     return static_cast<int>(index);
 }
 
+// Function to ensure that the index is within the box
 int Simulation::wrapHelper(int i)
 {
     if (i == this->numOfCellsPerDim)
@@ -73,12 +76,14 @@ int Simulation::wrapHelper(int i)
     }
 }
 
+// Function to calculate the index of a cell in the 1D array
 int Simulation::indexCalculator(int i, int j, int k)
 {
     int index = i * pow(this->numOfCellsPerDim, 2) + j * this->numOfCellsPerDim + k;
     return index;
 }
 
+// Function to update the kSquare array
 void Simulation::kSquareUpdater()
 {
     // #pragma omp parallel for collapse(3)
@@ -93,11 +98,11 @@ void Simulation::kSquareUpdater()
         {
             for (int k = 0; k < this->numOfCellsPerDim; k++)
             {
-                int index = indexCalculator(i, j, k);
+                int index = indexCalculator(i, j, k); // get the index of the cell in the 1-d array
                 // bool is_thread_even = (omp_get_thread_num() % 2 == 0);
                 // if (is_thread_even)
                 // {
-                //     std::this_thread::sleep_for(std::chrono::microseconds(1));
+                //     std::this_thread::sleep_for(std::chrono::microseconds(1)); // sleep for 1 microsecond to test the parallelization
                 // }
                 this->kSquare[index] = (k * k + j * j + i * i) / this->wSquare;
             }
@@ -188,7 +193,7 @@ void Simulation::densityCalculator()
     for (int i = 0; i < this->numOfParticles; ++i)
     {
         int index = cellIdentifier(this->particlesSimu.particleInfo[i].position);
-#pragma omp atomic
+#pragma omp atomic                                                             // atomic directive to ensure that the operation is done atomically, avoid race condition
         this->densityBuffer[index][0] += this->densityContributionPerParticle; // add the density to the desity buffer representing the cell
     }
 
@@ -223,6 +228,7 @@ void Simulation::potentialCalculator()
 // #pragma omp parallel for schedule(static)
 // #pragma omp parallel for schedule(dynamic)
 #pragma omp parallel for schedule(guided)
+    // scaling the frequency components
     for (int i = 1; i < this->numOfCells; i++)
     {
         this->frequencyBuffer[i][0] *= -4 * this->PI / kSquare[i] * this->fNorm;
@@ -246,8 +252,9 @@ void Simulation::accelerationCalculator(fftw_complex *potential)
         {
             for (int k = 0; k < this->numOfCellsPerDim; k++)
             {
-                int index = indexCalculator(i, j, k);
+                int index = indexCalculator(i, j, k); // get the index of the cell in the 1-d array
 
+                // finite difference to calculate the acceleration in 3 directions
                 this->acceleration[index][0] = (potential[indexCalculator(wrapHelper(i - 1), j, k)][0] - potential[indexCalculator(wrapHelper(i + 1), j, k)][0]) / (2.0 * this->cellWidth);
                 this->acceleration[index][1] = (potential[indexCalculator(i, wrapHelper(j - 1), k)][0] - potential[indexCalculator(i, wrapHelper(j + 1), k)][0]) / (2.0 * this->cellWidth);
                 this->acceleration[index][2] = (potential[indexCalculator(i, j, wrapHelper(k - 1))][0] - potential[indexCalculator(i, j, wrapHelper(k + 1))][0]) / (2.0 * this->cellWidth);
@@ -264,13 +271,14 @@ void Simulation::particlesUpdater(std::vector<std::vector<double>> acceleration)
 #pragma omp parallel for schedule(static)
     for (int i = 0; i < this->numOfParticles; ++i)
     {
-        int index = cellIdentifier(this->particlesSimu.particleInfo[i].position);
-        this->particlesSimu.particleInfo[i].updater(acceleration[index]);
+        int index = cellIdentifier(this->particlesSimu.particleInfo[i].position); // get the index of the cell that the particle is in
+        this->particlesSimu.particleInfo[i].updater(acceleration[index]); // update the position and velocity of the particle by invoking the updater method in particle class
     }
 }
 
 void Simulation::boxExpander()
 {
+    // update all the parameters that depend on the width
     this->width *= this->expanFac;
     this->volOfBox = pow(this->width, 3);
     this->volOfCell = this->volOfBox / this->numOfCells;
@@ -284,22 +292,25 @@ void Simulation::boxExpander()
 #pragma omp parallel for schedule(guided)
     for (int i = 0; i < this->numOfParticles; ++i)
     {
-        this->particlesSimu.particleInfo[i].velocityRescaler(this->expanFac);
+        this->particlesSimu.particleInfo[i].velocityRescaler(this->expanFac); // rescale the velocity of the particle
     }
 }
 
 void Simulation::run(std::optional<std::string> folderPath)
 {
-    bool flag = false;
-    int numSteps = static_cast<int>(std::floor(this->timeMax / this->timeStep));
+    bool flag = false; // flag to check if the folder path is provided
+    int numSteps = static_cast<int>(std::floor(this->timeMax / this->timeStep)); // calculate the number of steps which is the total time divided by the time step
 
+    // check if the folder path is provided
     if (folderPath.has_value())
     {
         flag = true;
+        // check if the folder exists, if not create it
         if (!std::filesystem::exists("Images"))
         {
             std::filesystem::create_directories("Images");
         }
+        // check if the folder exists, if not create it
         if (!std::filesystem::exists(std::string("Images") + "/" + (*folderPath)))
         {
             std::filesystem::create_directories(std::string("Images") + "/" + (*folderPath));
@@ -309,6 +320,7 @@ void Simulation::run(std::optional<std::string> folderPath)
     for (int i = 0; i <= numSteps; i++)
     {
         densityCalculator();
+        // save the density buffer to a file every 10 steps
         if (i % 10 == 0)
         {
             if (flag == true)

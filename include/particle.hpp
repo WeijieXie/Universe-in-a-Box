@@ -3,11 +3,12 @@
 #include <vector>
 #include <cmath>
 
+// Class representing a particle
 class particle
 {
 private:
-    static inline double mass = 1.0;
-    static inline double dt = 0.1;
+    static inline double mass = 1.0; // mass of the particle
+    static inline double dt = 0.1; // time step used for updating the position and velocity
 
 public:
     std::vector<double> position = {0.0, 0.0, 0.0};
