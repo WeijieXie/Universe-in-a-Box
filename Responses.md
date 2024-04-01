@@ -1,14 +1,35 @@
-# responses
+# Responses(23093556)
+
+## Representing Particles (1.2)  
+
+To represent the particles, I wrote 2 classes: class `particle` and class `particles`.  
+
+- class `particle` (related file: ["particle.hpp"](include/particle.hpp), ["particle.cpp"](lib/particle.cpp)): it is naturally to create a class to store the properties of a single particle. It has `position` and `velocity` which are `std::vector<double>`. For that `mass` and `dt` share across all instances, I made them static. `dt` may seem strange here, but it is useful for updating the particle's state over time, so I make it a member variable of the class. Operations such as updating positions and velocities are inherently actions performed on individual particles. Therefore, I have designed `velocityRescaler` and `updater` as member methods, adhering to the principles of object-oriented programming. Among these, `positionSetter` serves as a helper method, acting as a wrapper that encapsulates the functionality.  
+- class `particles` (related file: ["particles.hpp"](include/particles.hpp), ["particles.cpp"](lib/particles.cpp)): this class is a container which is used for initializing and storing multiple instances of `particle`. `particleInfo` is `std::vector<particle>`. In terms of efficiency, such a structure greatly facilitates traversal operations.  (in commit 5cc1389, refactor the initializtion method to improve efficiency).  
+
+## Complexity (1.10)  
+
+- **the density calculation**: For that `densityCalculator()` goes through every particles to find which cell it belongs to, and it does not care what **N<sub>c</sub>** is.Thus, it is **O(n)** for **n<sub>p</sub>**, **O(1)** for **N<sub>c</sub>**.  
+- **the potential calculation**: the size of input/output buffer to FFTW is **N<sub>c</sub>** which results in **O(nlog(n))** for **N<sub>c</sub>**, and it need to go through every entry of the buffer to do scaling which is **O(n)** for **N<sub>c</sub>**. For that **O(nlog(n))** > **O(n)**, the overall complicity is **O(nlog(n))** for **N<sub>c</sub>**. It does not care about **n<sub>p</sub>**, so it is **O(1)** for **n<sub>p</sub>**.
+- **the gravitational field calculation** : `accelerationCalculator()` needs to go through each cell to calculate their acceleration effect on particles, and the calculation in a single cell has nothing to do with **N<sub>c</sub>** or **n<sub>p</sub>**. Thus, it is **O(n)** for **N<sub>c</sub>**, **O(1)** for **n<sub>p</sub>**.
+- **the the particle update function**: `particlesUpdater()` go through every particles to update their positions and velocities according to which cell they located in. However, the cellIdentifier for a single particle is just a plain calculation independent of both **N<sub>c</sub>** and **n<sub>p</sub>**. Thus, it is **O(n)** for **n<sub>p</sub>**, **O(1)** for **N<sub>c</sub>**.  
+- In **PM method**, the highest complexity comes from **O(nlog(n))** for **N<sub>c</sub>** or **O(n)** for **n<sub>p</sub>**. Given that the number of particles is always larger than the total number of cells, then **O(nlog(n))** for **N<sub>c</sub>** is always smaller than **O(nlog(n))** for **n<sub>p</sub>**, and **O(nlog(n))** for **n<sub>p</sub>** is smaller than **O(n<sup>2</sup>)** for **n<sub>p</sub>** in **PP method**. Thus the complexity of **O(nlog(n))** for **N<sub>c</sub>** in **PM method** will never exceed **O(n<sup>2</sup>)** for **n<sub>p</sub>** in **PP method**. To sum up, Particle-Mesh method is better than the Particle-Particle method for large simulations.  
+
+## Visualising A Developing Universe (1.11)  
+
+- I ran the simulation with this 2 set of parameters:  
+  - `./build/bin/NBody_Visualiser -nc 51 -np 10 -t 1.5 -dt 0.01 -F 1.02 -o nc51-np10-t1_5-dt0_01-F1_02  -s 23093556` (images stores here: [Images/nc51-np10-t1_5-dt0_01-F1_02](Images/nc51-np10-t1_5-dt0_01-F1_02))  
+  - `./build/bin/NBody_Visualiser -nc 51 -np 10 -t 1.5 -dt 0.01 -F 1.00 -o nc51-np10-t1_5-dt0_01-F1_00  -s 23093556` (images stores here: [Images/nc51-np10-t1_5-dt0_01-F1_00](Images/nc51-np10-t1_5-dt0_01-F1_00))  
 
 ## Shared Memory Parallelism (2.1)  
 
 ### Class `Particle`
 
-no OpenMP is used here, for that the loop in this class is really small with only 3 iterations, the overhead o using OpenMP may overwhelm the effect of optimization.  
+no OpenMP is used here, for that the loop in this class is really small with only 3 iterations, the overhead of using OpenMP may overwhelm the benefit of optimization.  
 
 ### Class `Particles`
 
-this class is mainly used by initializing and storing particles, which should not be paralleised in order to get the same initialized particles.  
+this class is mainly used for initializing and storing particles, which should not be paralleised in order to get the same initialized particles.  
 
 ### Class `Simulation`
 
@@ -28,7 +49,7 @@ this class is mainly used by initializing and storing particles, which should no
   Benchmarking Simulation::kSquareUpdater with 8 threads.  
   Time = 1.24242  
   Info: #pragma omp parallel for collapse(3), 300 cells wide the box*  
-  I don't know why this happened. It may because the inside for loop is not complex enough. So the benefits from `collapse(3)` is less than its overhead.
+  It may because the inside for loop is not complex enough. So the benefits from `collapse(3)` is less than its overhead. Thus the executing time increases.
   - **#pragma omp parallel for collapse(2)**: now the `BenchmarkSimulation` displays:  
   *Actual number of threads have been setted as: 8  
   Benchmarking Simulation::kSquareUpdater with 8 threads.  
@@ -148,7 +169,7 @@ Not good.
   Benchmarking Simulation::accelerationCalculator with 8 threads.  
   Time = 0.471839  
   Info: #pragma omp parallel for collapse(3), 10000000 numOfParticles with seed 23093556, 101 cells wide the box*  
-  - schedule will be the basis of the `collapse(2)`
+  - schedule will be adjusted on the basis of the `collapse(2)`
   - **collapse(2) schedule(static)**:  
   *Actual number of threads have been setted as: 8  
   Benchmarking Simulation::accelerationCalculator with 8 threads.  
@@ -342,3 +363,10 @@ Not good.
   Info: **schedule(guided)**, 10000000 numOfParticles with seed 23093556, 101 cells wide the box  
 
   - `Simulation::potentialCalculator` looks weird. The executing time is **1.77982**, **1.81438**, **1.76488**, **1.74391**. It may cause by the `FFTW` related issue.  
+
+## Distributed Memory （2.2）
+
+- about `correlationFunction` function:  
+  - to make it suit my data sructure, I modified it to let it take a vector of particle `vector<particle> particleInfo`. In which each particle contains a position information. For example, now `position[i][0]` is replaced by `particleInfo[i].position[0]`.  
+  - there seems to be an error in the original function, where `i` in outer loop may equal `j` in inner loop, which means it measures the distance between a particle and itself, and it will later cause `inf` in `CR`. To solve it, I modify `for (int j = i; j < N; j += 1)` to `for (int j = i + 1; j < N; j += 1)`.  
+- the command line arguments is: `mpirun -np 4 ./build/bin/NBody_Comparison -o nc51-np10-t1_5-dt0_01-process4 -min 1.00 -max 1.06`  
