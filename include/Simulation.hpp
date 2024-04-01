@@ -41,7 +41,7 @@ public:
     fftw_complex *densityBuffer = nullptr;
     fftw_complex *potentialBuffer = nullptr;
     fftw_complex *frequencyBuffer = nullptr;
-    std::vector<std::vector<double>> acceleration;
+    std::vector<std::vector<double>> acceleration; // acceleration of each cell in the x, y, z direction to particles
 
     fftw_plan forward_plan;
     fftw_plan inverse_plan;
@@ -52,7 +52,7 @@ public:
     int cellIdentifier(std::vector<double> position); // used to identify the cell that a particle is in
     int wrapHelper(int i);                            // ensures that the index is within the box
     int indexCalculator(int i, int j, int k);         // used to calculate the index of a cell in the 1D array
-    void kSquareUpdater();
+    void kSquareUpdater();                            // used to update the square of the wave vector
     void densityCalculator();
     void potentialCalculator();
     void accelerationCalculator(fftw_complex *potential);

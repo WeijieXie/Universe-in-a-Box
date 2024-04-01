@@ -14,7 +14,7 @@ Simulation::Simulation(double timeMax, double timeStep, particles initParticles,
     this->numOfParticles = this->particlesSimu.particleInfo.size();
     this->volOfBox = pow(this->width, 3);
     this->volOfCell = this->volOfBox / this->numOfCells;
-    this->relCellWidth = 1.0 / this->numOfCellsPerDim;
+    this->relCellWidth = 1.0 / this->numOfCellsPerDim; // relative cell width
     this->cellWidth = this->width / this->numOfCellsPerDim;
     this->densityContributionPerParticle = particle::massGetter() / this->volOfCell; // need updating per iteration
     this->wSquare = this->width * this->width;
@@ -35,7 +35,7 @@ Simulation::Simulation(double timeMax, double timeStep, particles initParticles,
 Simulation::~Simulation()
 {
     fftw_free(this->densityBuffer);
-    densityBuffer = nullptr;
+    densityBuffer = nullptr; // set the pointer to null after freeing the memory to avoid dangling pointer
     fftw_free(this->potentialBuffer);
     potentialBuffer = nullptr;
     fftw_free(this->frequencyBuffer);
@@ -62,13 +62,12 @@ int Simulation::cellIdentifier(std::vector<double> position)
 int Simulation::wrapHelper(int i)
 {
     if (i == this->numOfCellsPerDim)
-
     {
-        return 0;
+        return 0; // if the index is equal to the number of cells per dimension, wrap it around the box
     }
     else if (i == -1)
     {
-        return this->numOfCellsPerDim - 1;
+        return this->numOfCellsPerDim - 1; // if the index is -1, wrap it around the box
     }
     else
     {
@@ -228,6 +227,7 @@ void Simulation::potentialCalculator()
 // #pragma omp parallel for schedule(static)
 // #pragma omp parallel for schedule(dynamic)
 #pragma omp parallel for schedule(guided)
+
     // scaling the frequency components
     for (int i = 1; i < this->numOfCells; i++)
     {
@@ -272,7 +272,7 @@ void Simulation::particlesUpdater(std::vector<std::vector<double>> acceleration)
     for (int i = 0; i < this->numOfParticles; ++i)
     {
         int index = cellIdentifier(this->particlesSimu.particleInfo[i].position); // get the index of the cell that the particle is in
-        this->particlesSimu.particleInfo[i].updater(acceleration[index]); // update the position and velocity of the particle by invoking the updater method in particle class
+        this->particlesSimu.particleInfo[i].updater(acceleration[index]);         // update the position and velocity of the particle by invoking the updater method in particle class
     }
 }
 
@@ -298,7 +298,7 @@ void Simulation::boxExpander()
 
 void Simulation::run(std::optional<std::string> folderPath)
 {
-    bool flag = false; // flag to check if the folder path is provided
+    bool flag = false;                                                           // flag to check if the folder path is provided
     int numSteps = static_cast<int>(std::floor(this->timeMax / this->timeStep)); // calculate the number of steps which is the total time divided by the time step
 
     // check if the folder path is provided

@@ -7,7 +7,7 @@ particles::particles(int numOfParticles, int seed)
     for (int i = 0; i < numOfParticles; ++i)
     {
         particle particleX;
-        particleX.positionSetter({rand() / (RAND_MAX + 1.0), rand() / (RAND_MAX + 1.0), rand() / (RAND_MAX + 1.0)}); // random position
+        particleX.positionSetter({rand() / (RAND_MAX + 1.0), rand() / (RAND_MAX + 1.0), rand() / (RAND_MAX + 1.0)}); // random position between 0 and 1
         this->particleInfo[i] = particleX;
     }
 }
